@@ -70,7 +70,7 @@ for k,v in pairs(targets) do
 	if v ~= nil then
 		if getmetatable(v).__name == "peripheral" then
 			if getmetatable(v).types.inventory then
-				print(k.." - "..peripheral.getType(peripheral.getName(v)).." isEmpty: ".. tostring(IsTargetEmpty(v)))
+				print(k.." - "..peripheral.getType(peripheral.getName(v)).." isEmpty: ".. tostring(IsValidTarget(v)))
 				invalid = false
 			else
 				print(k.." - doesnt have an inventory.")
@@ -89,7 +89,7 @@ end
 
 -- RECIPES DECLARATION
 AddRecipe("packer", "tiny dusts compression", {{key = "forge:tiny_dusts", count = 9}})
-AddRecipe("packer", "small dusts compression", {{key = "forge:tiny_dusts", count = 9}})
+AddRecipe("packer", "small dusts compression", {{key = "forge:small_dusts", count = 4}})
 
 AddRecipe("centrifuge", "Rare Earth Dust processing", {{key = "gtceu:rare_earth_dust", count = 1}})
 AddRecipe("centrifuge", "Tricalcium Phosphate Dust processing", {{key = "gtceu:tricalcium_phosphate_dust", count = 5}})
@@ -97,17 +97,18 @@ AddRecipe("centrifuge", "Tricalcium Phosphate Dust processing", {{key = "gtceu:t
 AddRecipe("electrolyzer", "Phosphate Dust processing", {{key = "forge:dusts/phosphate", count = 5}})
 AddRecipe("electrolyzer", "Apatite Dust processing", {{key = "gtceu:apatite_dust", count = 5}})
 AddRecipe("electrolyzer", "Rock Salt Dust processing", {{key = "gtceu:rock_salt_dust", count = 2}})
---AddRecipe("foo", "bar", {{key = "minecraft:stone", count = 1}})
 
 sleep(1)
-
+local timer = 0
 while true do
-
+	timer = os.epoch([[utc]])
+	status.iterations = 0
 	-- iterating target recipe groups
 	for target_alias, target_recipes in pairs(recipes) do
 		local target = targets[target_alias]
 		if IsValidTarget(target) then 
-		-- iterating recipes
+			status.last_jobs[target_alias] = nil
+			-- iterating recipes
 			for recipe_n, recipe in pairs(target_recipes) do
 				local ingredient_slots = {}
 				local has_all_ingredients = true
@@ -119,17 +120,18 @@ while true do
 					
 					-- iterating drawer slots
 					for item_slot, item_short in pairs(drawer.list()) do
+						status.iterations = status.iterations + 1
 						if item_short.count > ingredient.count then 
-							if item_short.name == ingredient.key  then
-								ingredient_slot_info = {slot = item_slot, count = item_short.count}
-								break
-							else
+							--if item_short.name == ingredient.key  then
+							--	ingredient_slot_info = {slot = item_slot, count = item_short.count}
+							--	break
+							--else
 								local item_long = drawer.getItemDetail(item_slot)
-								if item_long.tags[ingredient.key] ~= nil then
+								if tem_short.name == ingredient.key or item_long.tags[ingredient.key] ~= nil then
 									ingredient_slot_info = {slot = item_slot, count = item_short.count}
 									break
 								end
-							end
+							--end
 						end
 					end
 					if ingredient_slot_info == nil then 
@@ -142,18 +144,20 @@ while true do
 					--multiplier = math.min(ingredient_max_multiplier,multiplier)
 					--Short `multiplier` calculations:
 					multiplier = math.min(multiplier,math.floor(math.min(ingredient_slot_info.count,64)/ingredient.count))
+					ingredient_slot_info.count = ingredient.count
 					table.insert(ingredient_slots,ingredient_slot_info)
 				end
 				if has_all_ingredients then
 					local result = MoveItemsToTarget(target,ingredient_slots,multiplier)
 					if result then
-						status.last_jobs[target_alias] = recipe.name
+						status.last_jobs[target_alias] = {name = recipe.name, mul = multiplier}
 					end
 					break
 				end
 			end
 		end
 	end	
+	status.cycle_time = (os.epoch([[utc]]) - timer)/1000
 	DisplayStatus()
-	sleep(1)
+	sleep(0)
 end
