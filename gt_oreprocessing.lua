@@ -1,5 +1,6 @@
 require("adebugutils")
 term.clear()
+term.setCursorPos(1,1)
 local recipes = {}
 local drawer = peripheral.find("functionalstorage:storage_controller")
 if drawer == nil then 
@@ -59,6 +60,7 @@ function MoveItemsToTarget(Target,Ingredients,Multiplier)
 end
 function DisplayStatus()
 	term.clear()
+	term.setCursorPos(1,1)
 	PrintTable(status)
 end
 
