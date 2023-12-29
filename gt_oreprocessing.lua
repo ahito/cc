@@ -100,8 +100,11 @@ AddRecipe("electrolyzer", "Rock Salt Dust processing", {{key = "gtceu:rock_salt_
 
 sleep(1)
 local timer = 0
+local drawer_content = nil
+local lookup_table = nil
 while true do
 	timer = os.epoch([[utc]])
+	drawer_content = drawer.list()
 	status.iterations = 0
 	-- iterating target recipe groups
 	for target_alias, target_recipes in pairs(recipes) do
@@ -119,19 +122,21 @@ while true do
 					local ingredient_slot_info = nil
 					
 					-- iterating drawer slots
-					for item_slot, item_short in pairs(drawer.list()) do
+					for item_slot, item_short in pairs(drawer_content) do
 						status.iterations = status.iterations + 1
 						if item_short.count > ingredient.count then 
-							--if item_short.name == ingredient.key  then
-							--	ingredient_slot_info = {slot = item_slot, count = item_short.count}
-							--	break
-							--else
-								local item_long = drawer.getItemDetail(item_slot)
-								if tem_short.name == ingredient.key or item_long.tags[ingredient.key] ~= nil then
-									ingredient_slot_info = {slot = item_slot, count = item_short.count}
-									break
-								end
-							--end
+							if item_short.name == ingredient.key  then
+								ingredient_slot_info = {slot = item_slot, count = item_short.count}
+								break
+							end
+							if lookup_table[item_short.name] == nil then
+								lookup_table[item_short.name] = {}
+								lookup_table[item_short.name].tags = drawer.getItemDetail(item_slot).tags
+							end
+							if lookup_table[item_short.name].tags[ingredient.key] ~= nil then
+								ingredient_slot_info = {slot = item_slot, count = item_short.count}
+								break
+							end
 						end
 					end
 					if ingredient_slot_info == nil then 
