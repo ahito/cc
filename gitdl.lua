@@ -5,7 +5,7 @@ local branch = "main"
 if #args == 1 then
 	filename = args[1]
 elseif #args == 2 then
-	branch = args
+	branch = args[1]
 	filename = args[2]
 else
 	print("Usage:")
@@ -18,7 +18,7 @@ end
 local url = gitraw_url..branch.."/"..filename
 print(url)
 local request = http.get(url)
-if request.getResponseCode() == 200 then
+if request ~= nil and request.getResponseCode() == 200 then
 	file = fs.open(filename,"w")
 	file.write(request.readAll())
 	file.close()
