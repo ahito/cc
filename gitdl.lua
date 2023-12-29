@@ -24,5 +24,5 @@ if request ~= nil and request.getResponseCode() == 200 then
 	file.close()
 	print("File '"..filename.."' loaded.\n")
 else
-	print("Failed")
+	error("Failed")
 end
