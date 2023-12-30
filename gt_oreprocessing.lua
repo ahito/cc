@@ -95,8 +95,15 @@ AddRecipe("centrifuge", "Rare Earth Dust processing", {{key = "gtceu:rare_earth_
 AddRecipe("centrifuge", "Tricalcium Phosphate Dust processing", {{key = "gtceu:tricalcium_phosphate_dust", count = 5}})
 
 AddRecipe("electrolyzer", "Phosphate Dust processing", {{key = "forge:dusts/phosphate", count = 5}})
-AddRecipe("electrolyzer", "Apatite Dust processing", {{key = "gtceu:apatite_dust", count = 5}})
+AddRecipe("electrolyzer", "Apatite Dust processing", {{key = "gtceu:apatite_dust", count = 9}})
 AddRecipe("electrolyzer", "Rock Salt Dust processing", {{key = "gtceu:rock_salt_dust", count = 2}})
+AddRecipe("electrolyzer", "Bastnasine Dust processing", {{key = "gtceu:bastnasite_dust", count = 6}})
+AddRecipe("electrolyzer", "Pyrolusite Dust processing", {{key = "gtceu:pyrolusite_dust", count = 3}})
+AddRecipe("electrolyzer", "Tantalite Dust processing", {{key = "gtceu:tantalite_dust", count = 9}})
+AddRecipe("electrolyzer", "Bauxite Dust processing", {{key = "gtceu:bauxite_dust", count = 15}})
+AddRecipe("electrolyzer", "Grossular Dust processing", {{key = "gtceu:grossular_dust", count = 20}})
+AddRecipe("electrolyzer", "Potassium Feldspar Dust processing", {{key = "gtceu:potassium_feldspar_dust", count = 11}})
+
 
 sleep(1)
 local timer = 0
@@ -109,7 +116,8 @@ while true do
 	-- iterating target recipe groups
 	for target_alias, target_recipes in pairs(recipes) do
 		local target = targets[target_alias]
-		if IsValidTarget(target) then 
+		local call_status, call_result = pcall(IsValidTarget,target)
+		if call_status and call_result then 
 			status.last_jobs[target_alias] = nil
 			-- iterating recipes
 			for recipe_n, recipe in pairs(target_recipes) do
@@ -124,7 +132,7 @@ while true do
 					-- iterating drawer slots
 					for item_slot, item_short in pairs(drawer_content) do
 						status.iterations = status.iterations + 1
-						if item_short.count > ingredient.count then 
+						if item_short.count >= ingredient.count then 
 							if item_short.name == ingredient.key  then
 								ingredient_slot_info = {slot = item_slot, count = item_short.count}
 								break
