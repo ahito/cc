@@ -7,9 +7,12 @@ if me == nil then
 	error("No \"meBridge\" found in network.") 
 end
 local targets = {
-	["packer"] = peripheral.find("gtceu:mv_packer"),
-	["centrifuge"] = peripheral.find("gtceu:mv_centrifuge"),
-	["electrolyzer"] = peripheral.find("gtceu:mv_electrolyzer")
+	["ore_washer"] = peripheral.find("gtceu:ev_ore_washer"),
+	["thermal_centrifuge"] = peripheral.find("gtceu:ev_thermal_centrifuge"),
+	["macerator"] = peripheral.find("gtceu:ev_macerator"),
+	["packer"] = peripheral.find("gtceu:ev_packer"),
+	["centrifuge"] = peripheral.find("gtceu:ev_centrifuge"),
+	["electrolyzer"] = peripheral.find("gtceu:ev_electrolyzer")
 }
 local status = {
 	["last_jobs"] = {}
@@ -55,7 +58,7 @@ function MoveItemsToTarget(Target,Ingredients,Multiplier)
 
 	for k,v in pairs(Ingredients) do
 	--	drawer.pushItems(peripheral.getName(Target),v.slot,v.count*Multiplier)
-		me.exportItemToPeripheral({fingerpring = v.slot, amount = v.count*Multiplier}, peripheral.getName(Target))
+		me.exportItemToPeripheral({fingerprint = v.slot, count = v.count*Multiplier}, peripheral.getName(Target))
 	end
 	
 	return true
@@ -90,6 +93,10 @@ for k,v in pairs(targets) do
 end
 
 -- RECIPES DECLARATION
+AddRecipe("ore_washer","Ore Washer Job", {{key = "forge:crushed_ores", count = 1}})
+AddRecipe("thermal_centrifuge","Thermal Centrifuge Job", {{key = "forge:purified_ores", count = 1}})
+AddRecipe("macerator","Macerator Job", {{key = "forge:refined_ores", count = 1}})
+
 AddRecipe("packer", "tiny dusts compression", {{key = "forge:tiny_dusts", count = 9}})
 AddRecipe("packer", "small dusts compression", {{key = "forge:small_dusts", count = 4}})
 
@@ -142,12 +149,12 @@ while true do
 						status.iterations = status.iterations + 1
 						if item.amount >= ingredient.count then 
 							if item.name == ingredient.key then
-								ingredient_slot_info = {slot = item.fingerpring, count = item_short.count}
+								ingredient_slot_info = {slot = item.fingerprint, count = item.amount}
 								break
 							end
-							for tag_i, tag in pairs(item.tags)		
+							for tag_i, tag in pairs(item.tags) do	
 								if string.sub(tag,16) == ingredient.key then
-									ingredient_slot_info = {slot = item.fingerpring, count = item_short.count}
+									ingredient_slot_info = {slot = item.fingerprint, count = item.amount}
 									break
 								end
 							end
