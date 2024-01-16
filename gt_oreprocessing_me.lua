@@ -2,9 +2,9 @@ require("adebugutils")
 term.clear()
 term.setCursorPos(1,1)
 local recipes = {}
-local drawer = peripheral.find("functionalstorage:storage_controller")
-if drawer == nil then 
-	error("No \"functionalstorage:storage_controller\" found in network.") 
+local me = peripheral.find("meBridge")
+if me == nil then 
+	error("No \"meBridge\" found in network.") 
 end
 local targets = {
 	["packer"] = peripheral.find("gtceu:mv_packer"),
@@ -54,8 +54,10 @@ function MoveItemsToTarget(Target,Ingredients,Multiplier)
 	if #Ingredients == 0 then return false end
 
 	for k,v in pairs(Ingredients) do
-		drawer.pushItems(peripheral.getName(Target),v.slot,v.count*Multiplier)
+	--	drawer.pushItems(peripheral.getName(Target),v.slot,v.count*Multiplier)
+		me.exportItemToPeripheral({fingerpring = v.slot, amount = v.count*Multiplier}, peripheral.getName(Target))
 	end
+	
 	return true
 end
 function DisplayStatus()
@@ -113,11 +115,12 @@ AddRecipe("electrolyzer", "Magnesia Dust processing", {{key = "gtceu:magnesia_du
 
 sleep(1)
 local timer = 0
-local drawer_content = nil
-local lookup_table = nil
+local me_items = nil
+--local lookup_table = nil
 while true do
 	timer = os.epoch([[utc]])
-	drawer_content = drawer.list()
+	--drawer_content = drawer.list()
+	me_items = me.listItems()
 	status.iterations = 0
 	-- iterating target recipe groups
 	for target_alias, target_recipes in pairs(recipes) do
@@ -135,24 +138,39 @@ while true do
 				for ingredient_n,ingredient in pairs(recipe.ingredients) do
 					local ingredient_slot_info = nil
 					
-					-- iterating drawer slots
-					for item_slot, item_short in pairs(drawer_content) do
+					for item_i,item in pairs(me_items) do
 						status.iterations = status.iterations + 1
-						if item_short.count >= ingredient.count then 
-							if item_short.name == ingredient.key  then
-								ingredient_slot_info = {slot = item_slot, count = item_short.count}
+						if item.amount >= ingredient.count then 
+							if item.name == ingredient.key then
+								ingredient_slot_info = {slot = item.fingerpring, count = item_short.count}
 								break
 							end
-							if lookup_table[item_short.name] == nil then
-								lookup_table[item_short.name] = {}
-								lookup_table[item_short.name].tags = drawer.getItemDetail(item_slot).tags
-							end
-							if lookup_table[item_short.name].tags[ingredient.key] ~= nil then
-								ingredient_slot_info = {slot = item_slot, count = item_short.count}
-								break
+							for tag_i, tag in pairs(item.tags)		
+								if string.sub(tag,16) == ingredient.key then
+									ingredient_slot_info = {slot = item.fingerpring, count = item_short.count}
+									break
+								end
 							end
 						end
 					end
+					-- iterating drawer slots
+					--for item_slot, item_short in pairs(drawer_content) do
+					--	status.iterations = status.iterations + 1
+					--	if item_short.count >= ingredient.count then 
+					--		if item_short.name == ingredient.key  then
+					--			ingredient_slot_info = {slot = item_slot, count = item_short.count}
+					--			break
+					--		end
+					--		--if lookup_table[item_short.name] == nil then
+					--		--	lookup_table[item_short.name] = {}
+					--		--	lookup_table[item_short.name].tags = drawer.getItemDetail(item_slot).tags
+					--		--end
+					--		--if lookup_table[item_short.name].tags[ingredient.key] ~= nil then
+					--		--	ingredient_slot_info = {slot = item_slot, count = item_short.count}
+					--		--	break
+					--		--end
+					--	end
+					--end
 					if ingredient_slot_info == nil then 
 						has_all_ingredients = false 
 						break 
